@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: db
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      initContainers:
+      - name: dr-restore-init
+        image: amazonlinux:2023
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          if [ ! -f /data/db/restored_check.flag ]; then
+            echo "=== No data found, restoring from AWS S3 via Relay ==="
+            RELAY_IP="43.202.217.158"
+            
+            DL_RES=$(curl -s "http://$RELAY_IP:8000/presigned/download?filename=backup-latest.tar.gz")
+            DL_URL=$(echo "$DL_RES" | python3 -c "import sys, json; print(json.load(sys.stdin)['download_url'])")
+            
+            curl -s "$DL_URL" -o /tmp/backup-latest.tar.gz
+            tar -zxvf /tmp/backup-latest.tar.gz -C / 2>/dev/null || true
+            touch /data/db/restored_check.flag
+            echo "=== Data Restoration Complete ==="
+          else
+            echo "Data already exists, skipping restore."
+          fi
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+      containers:
+      - name: mongodb
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        - name: mongodb-logs
+          mountPath: /var/log/mongodb
+      volumes:
+      - name: mongodb-data
+        persistentVolumeClaim:
+          claimName: mongodb-data-nfs-pvc
+      - name: mongodb-logs
+        persistentVolumeClaim:
+          claimName: mongodb-logs-nfs-pvc

@@ -1,0 +1,17 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: istio-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 10.120.0.150-10.120.0.159
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: istio-l2-adv
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - istio-ip-pool

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"mongodb-logs-nfs-pv"},"spec":{"accessModes":["ReadWriteMany"],"capacity":{"storage":"2Gi"},"nfs":{"path":"/data/mongodb-logs","server":"10.120.0.140"},"persistentVolumeReclaimPolicy":"Retain"}}
+    pv.kubernetes.io/bound-by-controller: "yes"
+  creationTimestamp: "2026-10-12T08:05:16Z"
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: mongodb-logs-nfs-pv
+  resourceVersion: "65332"
+  uid: c1f6e349-359d-40fa-b8f6-f7218ee24282
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 2Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: mongodb-logs-nfs-pvc
+    namespace: db
+    resourceVersion: "65330"
+    uid: 5803884c-242b-4258-b6b2-35a9a42eb8bf
+  nfs:
+    path: /data/mongodb-logs
+    server: 10.120.0.140
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+status:
+  lastPhaseTransitionTime: "2026-10-12T08:05:16Z"
+  phase: Bound

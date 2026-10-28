@@ -1,0 +1,5 @@
+/data/mongodb-logs 10.120.0.141(rw,sync,no_subtree_check)
+/data/mongodb 10.120.0.141(rw,sync,no_subtree_check,no_root_squash)
+/data/prometheus-logs 10.120.0.140(rw,sync,no_subtree_check) 10.120.0.141(rw,sync,no_subtree_check)
+/data/prometheus 10.120.0.140(rw,sync,no_subtree_check,no_root_squash) 10.120.0.141(rw,sync,no_subtree_check,no_root_squash)
+/data/prometheus-logs 10.120.0.141(rw,sync,no_subtree_check)

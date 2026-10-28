@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: db
+  labels:
+    app: mongodb
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:6.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 27017
+          protocol: TCP
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "root"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: "password123"
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongodb-data
+        - mountPath: /var/log/mongodb
+          name: mongodb-logs
+      volumes:
+      - name: mongodb-data
+        persistentVolumeClaim:
+          claimName: mongodb-data-nfs-pvc
+      - name: mongodb-logs
+        persistentVolumeClaim:
+          claimName: mongodb-logs-nfs-pvc

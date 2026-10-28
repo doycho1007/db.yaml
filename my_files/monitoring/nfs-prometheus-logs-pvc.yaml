@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-logs-pvc
+  namespace: monitor
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-prometheus-logs
+  resources:
+    requests:
+      storage: 2Gi

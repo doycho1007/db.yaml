@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-log-collector-config
+  namespace: monitor
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush           1
+        Daemon          Off
+        Log_Level       info
+        Parsers_File    /fluent-bit/etc/parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/prometheus-mymonitor-kube-prometheus-prometheus-0_monitor_prometheus-*.log
+        Tag               prometheus.logs
+        Parser            cri
+        DB                /tail-db/prometheus.db
+        Refresh_Interval  5
+        Read_from_Head    false
+
+    [OUTPUT]
+        Name    file
+        Match   prometheus.logs
+        Path    /logs
+        File    ${NODE_NAME}-prometheus.log
+        Format  plain
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: prometheus-log-collector
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: prometheus-log-collector
+  template:
+    metadata:
+      labels:
+        app: prometheus-log-collector
+    spec:
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: fluent-bit
+          image: cr.fluentbit.io/fluent/fluent-bit:3.2.10
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+              readOnly: true
+            - name: container-logs
+              mountPath: /var/log/containers
+              readOnly: true
+            - name: pod-logs
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: log-storage
+              mountPath: /logs
+            - name: tail-db
+              mountPath: /tail-db
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-log-collector-config
+        - name: container-logs
+          hostPath:
+            path: /var/log/containers
+            type: Directory
+        - name: pod-logs
+          hostPath:
+            path: /var/log/pods
+            type: Directory
+        - name: log-storage
+          persistentVolumeClaim:
+            claimName: prometheus-logs-pvc
+        - name: tail-db
+          emptyDir: {}

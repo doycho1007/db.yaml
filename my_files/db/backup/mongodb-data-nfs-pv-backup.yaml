@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"mongodb-data-nfs-pv"},"spec":{"accessModes":["ReadWriteMany"],"capacity":{"storage":"5Gi"},"nfs":{"path":"/data/mongodb","server":"10.120.0.140"},"persistentVolumeReclaimPolicy":"Retain","storageClassName":""}}
+    pv.kubernetes.io/bound-by-controller: "yes"
+  creationTimestamp: "2026-10-12T08:18:32Z"
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: mongodb-data-nfs-pv
+  resourceVersion: "67112"
+  uid: 93a70e60-9438-4595-b995-38547e6091ad
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: mongodb-data-nfs-pvc
+    namespace: db
+    resourceVersion: "67110"
+    uid: 41c5c2cd-42ff-4190-ab72-805048d5465a
+  nfs:
+    path: /data/mongodb
+    server: 10.120.0.140
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+status:
+  lastPhaseTransitionTime: "2026-10-12T08:18:32Z"
+  phase: Bound

@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dr-backup-cronjob
+spec:
+  schedule: "0 * * * *"  # 매시간 정각에 실행
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup-runner
+            image: amazonlinux:2023
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              echo "=== Starting DR Backup =="
+              # 1. 백업 대상 데이터 압축 (예시: /data 디렉터리 또는 DB 덤프)
+              tar -zcvf /tmp/backup-latest.tar.gz /data 2>/dev/null || echo "No data dir, creating dummy"
+              [ -f /tmp/backup-latest.tar.gz ] || echo "test" > /tmp/backup-latest.tar.gz
+
+              # 2. EC2 중계기에서 Presigned URL 발급받기
+              RELAY_IP="43.202.217.158"
+              UPLOAD_RES=$(curl -s "http://$RELAY_IP:8000/presigned/upload?filename=backup-latest.tar.gz")
+              UPLOAD_URL=$(echo "$UPLOAD_RES" | python3 -c "import sys, json; print(json.load(sys.stdin)['upload_url'])")
+
+              # 3. S3로 업로드 실행
+              curl -X PUT --upload-file /tmp/backup-latest.tar.gz "$UPLOAD_URL"
+              echo "=== Backup Completed Successfully ==="

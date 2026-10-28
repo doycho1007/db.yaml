@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: db-storage-quota
+  namespace: db
+spec:
+  hard:
+    requests.storage: 10Gi
+
